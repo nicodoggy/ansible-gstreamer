@@ -1,18 +1,4 @@
 ---
-#[
-#  {
-#    "name": "..."
-#    , "shell": "..."
-#    , "loop": ""
-#  }
-#  , {
-#    "name": ""
-#    , "file": {
-#      "name": ""
-#      , "state": ""
-#    }
-#  }
-#]
 - name: "Install dependencies: {{ APP_DEPENDENCIES | join(' ') }}"
   shell: "pkcon install -y {{ item }} | true"
   loop: "{{ APP_DEPENDENCIES }}"
