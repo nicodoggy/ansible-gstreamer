@@ -1,0 +1,55 @@
+---
+#[
+#  {
+#    "name": "..."
+#    , "shell": "..."
+#    , "loop": ""
+#  }
+#  , {
+#    "name": ""
+#    , "file": {
+#      "name": ""
+#      , "state": ""
+#    }
+#  }
+#]
+- name: "Install dependencies: {{ APP_DEPENDENCIES | join(' ') }}"
+  shell: "pkcon install -y {{ item }} | true"
+  loop: "{{ APP_DEPENDENCIES }}"
+- name: "Upgrade meson python dependency"
+  shell: "pip install --upgrade meson"
+- name: "Create the directory {{ APP_SRC }}"
+  ansible.builtin.file:
+    path: "{{ APP_SRC }}"
+    state: directory
+- name: "Check for the README file {{ APP_README }}"
+  stat:
+    path: "{{ APP_README }}"
+  register: APP_README_PATH
+- name: "Clone the {{ APP_REPO }} source code into {{ APP_SRC }}"
+  git:
+    repo: "{{ APP_REPO }}"
+    dest: "{{ APP_SRC }}"
+    version: "{{ APP_TAG }}"
+  when: not APP_README_PATH.stat.exists
+  ignore_errors: true
+- name: "Create the build directory {{ APP_SRC }}/build"
+  file:
+    name: "{{ APP_SRC }}/build"
+    state: directory
+- name: "run meson setup"
+  shell:
+    chdir: "{{ APP_SRC }}"
+    cmd: "meson setup build --prefix {{ APP_PREFIX }} -Dbad=enabled -Dgst-plugins-bad:msdk=enabled -Dgpl=enabled -Dgood=enabled -Dugly=enabled -Dlibav=enabled"
+- name: "run subprojects update"
+  shell:
+    chdir: "{{ APP_SRC }}"
+    cmd: "meson subprojects update --reset"
+- name: "ninja dong"
+  shell:
+    chdir: "{{ APP_SRC }}/build"
+    cmd: ninja
+- name: "ninja install"
+  shell:
+    chdir: "{{ APP_SRC }}/build"
+    cmd: ninja install
